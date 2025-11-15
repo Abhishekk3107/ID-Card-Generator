@@ -1,5 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Draggable from 'react-draggable';
+import { 
+  ArrowUpIcon, 
+  ArrowDownIcon, 
+  ArrowLeftIcon, 
+  ArrowRightIcon,
+  SparklesIcon,
+  CursorArrowRaysIcon
+} from '@heroicons/react/24/solid';
 
 const IDCardCanvas = ({
   template,
@@ -14,13 +22,12 @@ const IDCardCanvas = ({
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1);
 
-  // Calculate optimal scale based on container width
   useEffect(() => {
     const calculateScale = () => {
       if (!containerRef.current) return;
       
       const containerWidth = containerRef.current.offsetWidth;
-      const maxWidth = containerWidth - 40; // Account for padding
+      const maxWidth = containerWidth - 40;
       const cardWidth = template.width;
       
       if (maxWidth < cardWidth) {
@@ -101,12 +108,15 @@ const IDCardCanvas = ({
       function drawPhotoPlaceholder() {
         if (template.hasPhoto && template.photoConfig) {
           const { x, y, width, height, borderRadius, borderColor, borderWidth } = template.photoConfig;
+          
+          // Draw border
           ctx.strokeStyle = borderColor;
           ctx.lineWidth = borderWidth;
           ctx.beginPath();
           ctx.roundRect(x - borderWidth/2, y - borderWidth/2, width + borderWidth, height + borderWidth, borderRadius);
           ctx.stroke();
 
+          // Draw photo background
           ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
           ctx.beginPath();
           ctx.roundRect(x, y, width, height, borderRadius);
@@ -117,13 +127,37 @@ const IDCardCanvas = ({
             img.src = userPhoto;
             img.onload = () => {
               ctx.save();
+              
+              // Create clipping path for rounded corners
               ctx.beginPath();
               ctx.roundRect(x, y, width, height, borderRadius);
               ctx.clip();
-              ctx.drawImage(img, x, y, width, height);
+              
+              // Calculate aspect ratio fit (cover behavior)
+              const imgAspect = img.width / img.height;
+              const boxAspect = width / height;
+              
+              let drawWidth, drawHeight, drawX, drawY;
+              
+              if (imgAspect > boxAspect) {
+                // Image is wider - fit to height
+                drawHeight = height;
+                drawWidth = height * imgAspect;
+                drawX = x - (drawWidth - width) / 2; // Center horizontally
+                drawY = y;
+              } else {
+                // Image is taller - fit to width
+                drawWidth = width;
+                drawHeight = width / imgAspect;
+                drawX = x;
+                drawY = y - (drawHeight - height) / 2; // Center vertically
+              }
+              
+              ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
               ctx.restore();
             };
           } else {
+            // Draw camera icon placeholder
             ctx.fillStyle = '#cccccc';
             ctx.font = 'bold 48px Arial';
             ctx.textAlign = 'center';
@@ -162,42 +196,49 @@ const IDCardCanvas = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6" ref={containerRef}>
-      <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800 text-center">
-        Live Preview - Professional ID Card
-      </h2>
+    <div className="backdrop-blur-md bg-white/40 rounded-3xl shadow-2xl p-4 sm:p-6 border border-white/50" ref={containerRef}>
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
+          <SparklesIcon className="w-7 h-7 text-white" />
+        </div>
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Live Preview</h2>
+          <p className="text-sm text-gray-600">Professional ID Card</p>
+        </div>
+      </div>
 
       {/* Mobile Arrow Controls */}
       {isMobile && selectedTextId && (
-        <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-          <p className="text-sm text-blue-800 font-semibold mb-3 text-center">
-            Move Selected: {texts.find(t => t.id === selectedTextId)?.label}
+        <div className="mb-4 p-4 bg-blue-50/80 backdrop-blur-sm rounded-2xl border border-blue-200">
+          <p className="text-sm text-blue-900 font-semibold mb-3 text-center flex items-center justify-center gap-2">
+            <CursorArrowRaysIcon className="w-4 h-4" />
+            Move: {texts.find(t => t.id === selectedTextId)?.label}
           </p>
           <div className="flex flex-col items-center gap-2">
             <button
               onClick={() => handleMove('up')}
-              className="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-lg flex items-center justify-center font-bold text-xl shadow-md active:scale-95 transition-transform"
+              className="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all"
             >
-              ↑
+              <ArrowUpIcon className="w-6 h-6" />
             </button>
             <div className="flex gap-2">
               <button
                 onClick={() => handleMove('left')}
-                className="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-lg flex items-center justify-center font-bold text-xl shadow-md active:scale-95 transition-transform"
+                className="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all"
               >
-                ←
+                <ArrowLeftIcon className="w-6 h-6" />
               </button>
               <button
                 onClick={() => handleMove('down')}
-                className="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-lg flex items-center justify-center font-bold text-xl shadow-md active:scale-95 transition-transform"
+                className="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all"
               >
-                ↓
+                <ArrowDownIcon className="w-6 h-6" />
               </button>
               <button
                 onClick={() => handleMove('right')}
-                className="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-lg flex items-center justify-center font-bold text-xl shadow-md active:scale-95 transition-transform"
+                className="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all"
               >
-                →
+                <ArrowRightIcon className="w-6 h-6" />
               </button>
             </div>
           </div>
@@ -207,7 +248,7 @@ const IDCardCanvas = ({
       {/* Card Preview Container */}
       <div className="flex justify-center w-full">
         <div
-          className="relative border-4 border-gray-300 rounded-lg overflow-hidden shadow-xl"
+          className="relative border-4 border-gray-300 rounded-2xl overflow-hidden shadow-2xl"
           style={{
             width: `${scaledWidth}px`,
             height: `${scaledHeight}px`,
@@ -292,30 +333,30 @@ const IDCardCanvas = ({
       </div>
 
       {/* Tips Section */}
-      <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-        <p className="text-sm text-blue-800">
-          <strong>💡 Tips:</strong>
+      <div className="mt-4 p-3 bg-blue-50/80 backdrop-blur-sm rounded-2xl border border-blue-200">
+        <p className="text-sm text-blue-900 font-semibold mb-2">
+          💡 Quick Tips:
         </p>
-        <ul className="text-sm text-blue-700 mt-2 space-y-1">
+        <ul className="text-xs text-blue-800 space-y-1">
           {isMobile ? (
             <>
-              <li>• Tap any text to select it</li>
-              <li>• Use arrow buttons to move selected text</li>
-              <li>• Edit content using the editor panel below</li>
+              <li>• Tap text to select it</li>
+              <li>• Use arrow buttons to move</li>
+              <li>• Edit in the panel below</li>
             </>
           ) : (
             <>
-              <li>• Click and drag text to reposition</li>
-              <li>• Click text to select for editing</li>
-              <li>• Customize in the text editor panel</li>
+              <li>• Drag text to reposition</li>
+              <li>• Click to select for editing</li>
+              <li>• Customize in editor panel</li>
             </>
           )}
         </ul>
       </div>
 
       {scale < 1 && (
-        <div className="text-xs mt-2 text-center text-orange-700 bg-orange-50 rounded p-2">
-          ⚡ Preview scaled to {(scale * 100).toFixed(0)}% to fit your screen
+        <div className="text-xs mt-3 text-center text-purple-700 bg-purple-50/80 backdrop-blur-sm rounded-xl p-2 border border-purple-200">
+          ⚡ Preview scaled to {(scale * 100).toFixed(0)}% to fit screen
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-# 🎫 Professional ID Card Generator
+# 🎫ID Cardz.io - Professional ID Card Generator
 
 A modern, feature-rich web application for creating customizable professional ID cards with live preview and export capabilities. Built with React, Vite, and Tailwind CSS.
 
